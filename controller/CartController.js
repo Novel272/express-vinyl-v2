@@ -1,13 +1,11 @@
-import pkg from "sqlite3";
-import { getDBConnection } from "../db/db.js";
+import mongoose from "mongoose";
+import User from "../models/userSC.js";
+import Vinyl from "../models/vinylSC.js";
 
-const { OPEN_READWRITE } = pkg;
 export async function AddToCart(req, res) {
-  let ProductId = parseInt(req.body.productId, 10);
-  const db = await getDBConnection();
+  let ProductId = req.body.ProductId;
 
-  if (isNaN(ProductId)) {
-    await db.close();
+  if (!mongoose.Types.ObjectId.isValid(ProductId)) {
     return res.status(400).json({ error: "Invalid product ID" });
   }
   const userId = req.session.userId;
@@ -16,98 +14,96 @@ export async function AddToCart(req, res) {
     return res.status(401).json({ error: "Please log in first" });
   }
 
-  const existingCartItem = await db.get(
-    `SELECT * FROM cart_items WHERE user_id=? AND product_id=?`,
-    [userId, ProductId],
-  );
+  const existingCartItem = await User.findOne({
+    _id: userId,
+    "cart.productId": ProductId,
+  });
 
   if (existingCartItem) {
-    await db.run(`UPDATE cart_items SET quantity = quantity + 1 WHERE id=?`, [
-      existingCartItem.id,
-    ]);
+    await User.updateOne(
+      {
+        _id: userId,
+      },
+      {
+        $inc: { "cart.$.quantity": 1 },
+      },
+    );
   } else {
-    await db.run(
-      `INSERT INTO cart_items (user_id,product_id,quantity) VALUES (?,?,1)`,
-      [userId, ProductId],
+    await User.updateOne(
+      {
+        _id: userId,
+      },
+      {
+        $push: {
+          cart: {
+            productId: ProductId,
+            quantity: 1,
+          },
+        },
+      },
     );
   }
   res.status(200).json({ message: "Added to cart" });
 }
 
 export async function GetCartCount(req, res) {
-  const userId = req.session.userId;
-  const db = await getDBConnection();
+  const userId = req.session.user._id;
   if (!userId) {
     return res.status(401).json({ error: "Please log in first" });
   }
-  const CartCount = await db.get(
-    `SELECT SUM(quantity) AS totalItems FROM cart_items WHERE user_id=?`,
-    [userId],
-  );
-  res.json({ totalItems: CartCount.totalItems || 0 });
+  const user = await User.findById(userId);
+  const CartCount = user ? user.CartCount : 0;
+  res.json({ totalItems: CartCount });
 }
 
 export async function GetAll(req, res) {
-  const db = await getDBConnection();
+  const userId = req.session.userId;
   try {
-    const items = await db.all(
-      `SELECT ci.id AS cartItemId, ci.quantity, p.title, p.artist, p.price FROM cart_items ci JOIN products p ON p.id = ci.product_id WHERE ci.user_id = ?`,
-      [req.session.userId],
-    );
-    res.json({ items: items });
+    const user = await User.findById(userId).populate("cart.productId");
+    res.json({ items: user.cart });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Server error" });
-  } finally {
-    if (db) await db.close();
   }
 }
 
 export async function deleteItem(req, res) {
-  const db = await getDBConnection();
-  const UserId = req.session.userId;
-  const itemId = parseInt(req.params.itemId, 10);
-  if (isNaN(itemId) || !UserId) {
-    await db.close();
+  const userId = req.session.userId;
+  const itemId = req.params.productId;
+  if (!mongoose.Types.ObjectId.isValid(itemId) || !userId) {
     return res
       .status(400)
       .json({ error: "Invalid item ID or user not logged in" });
   }
   try {
-    const item = await db.get(
-      "SELECT quantity FROM cart_items WHERE id = ? AND user_id = ?",
-      [itemId, req.session.userId],
+    const item = await User.findOne(
+      { _id: userId },
+      { cart: { productId: itemId } },
     );
-
     if (!item) {
       return res.status(400).json({ error: "Item not found" });
     }
-    const result = await db.run(
-      `DELETE FROM cart_items WHERE id=? AND user_id=?`,
-      [itemId, UserId],
+    const result = await User.updateOne(
+      { _id: userId },
+      { $pull: { cart: { productId: itemId } } },
     );
     res.status(204).send();
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Server error" });
-  } finally {
-    if (db) await db.close();
   }
 }
 
 export async function deleteAll(req, res) {
-  const db = await getDBConnection();
-  const UserId = req.session.userId;
+  const userId = req.session.userId;
   try {
-    if (!UserId) {
+    if (!userId) {
       return res.status(401).json({ error: "Please log in first" });
     }
-    await db.run(`DELETE FROM cart_items WHERE user_id=?`, [UserId]);
+    await User.updateOne({ _id: userId }, { cart: [] });
     res.status(204).send();
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Server error" });
-  } finally {
-    if (db) await db.close();
   }
 }

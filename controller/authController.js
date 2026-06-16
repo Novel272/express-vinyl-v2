@@ -1,6 +1,7 @@
 import validator from "validator";
-import { getDBConnection } from "../db/db.js";
 import bcrypt from "bcryptjs";
+import User from "../models/userSC.js";
+import mongoose from "mongoose";
 
 export async function AuthController(req, res) {
   let regex = /^[a-zA-Z0-9_-]{1,20}$/;
@@ -24,27 +25,25 @@ export async function AuthController(req, res) {
   }
 
   try {
-    const db = await getDBConnection();
-    const existingUser = `SELECT EXISTS(
-    SELECT 1 FROM users 
-    WHERE LOWER(email)=LOWER(?)
-    OR LOWER(username)=LOWER(?)
-    )AS userExists;
-    `;
-
-    const { userExists } = await db.get(existingUser, [email, username]);
-    if (userExists) {
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }],
+    }).catch((err) => {
+      console.error("Database error:", err.message);
+      throw new Error("Database query failed");
+    });
+    if (existingUser) {
       return res
         .status(409)
         .json({ error: "Email or username already in use." });
     }
-    const hashedPassword = await bcrypt.hash(password, 10); //used to hash the password before storing the it also the 10 is the cost factor and we use bcrypt.comapre with the original password to log in
-
-    const insert = await db.run(
-      `INSERT INTO users (name,email,username,password) VALUES (?,?,?,?)`,
-      [name, email, username, hashedPassword],
-    );
-    req.session.userId = insert.lastID;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      name: name,
+      username: username,
+      email: email,
+      password: hashedPassword,
+    });
+    req.session.userId = user._id;
 
     res.status(201).json({ message: "User registered successfully." });
   } catch (err) {
@@ -58,22 +57,16 @@ export async function loginUser(req, res) {
 
   username = username.trim();
   password = password.trim();
-  const db = await getDBConnection();
-  const LogUser = await db.get(
-    `SELECT * FROM users WHERE LOWER(username)=LOWER(?)`,
-    [username],
-  );
+  const LogUser = await User.findOne({ username: username });
   if (!LogUser) {
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
   const isPasswordValid = await bcrypt.compare(password, LogUser.password);
-  if (isPasswordValid === false) {
+  if (!isPasswordValid) {
     return res.status(401).json({ error: "Invalid credentials" });
-  }
-
-  if (isPasswordValid === true) {
-    req.session.userId = LogUser.id;
+  } else {
+    req.session.userId = LogUser._id;
     res.json({ message: "Logged in" });
   }
 }

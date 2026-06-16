@@ -6,13 +6,22 @@ import session from "express-session";
 import dotenv from "dotenv";
 import { CartRouter } from "./route/CartRouter.js";
 import { meRouter } from "./route/meRoute.js";
+import mongoose, { Mongoose } from "mongoose";
 
 dotenv.config();
 
 const PORT = 3000;
 
 const app = express();
+const uri = process.env.MONGODB_URI;
 const secret = process.env.SPIRAL_SESSION_SECRET;
+
+export const connectDB=()=>{
+  await mongoose.connect(uri)
+  .then (()=> console.log("Connected to MongoDB successfully"))
+  .catch((error) => console.error("Error connecting to MongoDB:", error));
+}
+
 
 app.use(express.json()); // Middleware to parse JSON bodies from incoming requests
 // Configure session middleware for Express
@@ -54,5 +63,14 @@ app.get((req, res) => {
     message: "Endpoint not found. Please check the API documentation.",
   });
 });
+const startServer = async () => {
+  try {
+    await mongoose.connect(uri);
+    console.log("Connected to MongoDB successfully!");
+    app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+  } catch (error) {
+    console.error("Error starting kitchen:", error);
+  }
+};
 
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+startServer();
