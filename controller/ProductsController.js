@@ -1,14 +1,11 @@
-import { getDBConnection } from "../db/db.js";
+import mongoose from "mongoose";
+import Vinyl from "../models/vinylSC.js";
 
 export async function getGenres(req, res) {
   try {
-    const db = await getDBConnection();
     // Query all unique genres from the products table
-    const genres = `SELECT DISTINCT genre FROM products`;
-    const genreRows = await db.all(genres); // No filter needed
-    // Map to array of strings
-    const items = genreRows.map((item) => item.genre);
-    res.json(items);
+    const genreRows = await Vinyl.distinct("genre");
+    res.json(genreRows);
   } catch (err) {
     res
       .status(500)
@@ -18,26 +15,19 @@ export async function getGenres(req, res) {
 
 export async function getProducts(req, res) {
   try {
-    const db = await getDBConnection();
-    let productsQuery = `SELECT * FROM products`;
-    let params = []; // Added 'let' to define params
-
     let { genre, search } = req.query;
-
-    // 1. Build the Filter Logic
-    let conditions = [];
+    let query = {};
 
     if (genre) {
-      productsQuery += " WHERE genre = ?";
-      params.push(genre);
-    } else if (search) {
-      // Search across multiple columns
-      productsQuery += ` WHERE title LIKE ? OR artist LIKE ? OR genre LIKE ?`;
-      const searchParam = `%${search}%`;
-      params.push(searchParam, searchParam, searchParam);
+      query.genre = genre;
+    }
+    if (search) {
+      const sea = new RegExp(search, "i");
+      query.$or = [{ title: sea }, { artist: sea }, { genre: sea }];
     }
 
-    const products = await db.all(productsQuery, params);
+    //const products = await db.all(productsQuery, params);
+    const products = await Vinyl.find(query);
     res.json(products);
   } catch (err) {
     res
