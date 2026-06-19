@@ -1,113 +1,187 @@
-# Spiral Sounds – Simple Express Learning Project
+# Spiral Sounds – Full-Stack E-Commerce Platform
 
-This project is a beginner-friendly Express.js application that is a simple product listing site with search and filter functionality. It uses Express for the backend, SQLite for data storage, and vanilla JavaScript for the frontend.
+Spiral Sounds is a responsive, full-stack web application designed for browsing, searching, and purchasing vinyl records. Built with **Express.js** and **vanilla JavaScript**, this project demonstrates a complete end-to-end e-commerce flow, featuring persistent user authentication, session management, and a fully deployed cloud database architecture.
 
-## Features
+## 🚀 Live Demo
 
-- **Product Listing**: View a list of products with details such as name, description, price, and image.
-- **Search Functionality**: Search for products based on keywords.
-- **Filtering**: Filter the product list by genre, price range, and availability.
-- **Authentication**: Sign up, log in, and log out using email, username, and password.
-- **User Cart**: Add products to the cart and manage cart items.
-- **User Orders**: Create and manage orders, including adding items and updating order details.
-- **Backend API**: RESTful API for interacting with product and user data.
-- **Frontend**: Renders the product list, handles user input for search and filter, and manages user authentication and cart functionality.
+**[Insert Your Render URL Here]**
 
-## Getting Started
+> **Note:** The backend is hosted on a free Render tier. If the server has been inactive, please allow 30–50 seconds for the initial load as the instance wakes up. Subsequent requests will be extremely fast!
+
+## 🛠 Tech Stack
+
+- **Frontend:** HTML, CSS, Vanilla JavaScript
+- **Backend:** Node.js, Express.js
+- **Database:** MongoDB Atlas (Cloud)
+- **ODM:** Mongoose
+- **Authentication & State:** express-session, connect-mongo, bcrypt
+- **Deployment:** Render (Backend/Full-stack)
+
+## ✨ Key Features
+
+- **Cloud Database Integration:** Fully integrated with MongoDB Atlas for reliable, scalable data storage in the cloud.
+- **Robust Data Modeling:** Utilizes Mongoose ODM for strict schema validation, ensuring consistent data structures for Users, Products, and Carts.
+- **Persistent User Sessions:** Implements `connect-mongo` to store user session cookies directly in the database, preventing cart loss or accidental logouts during server restarts.
+- **Product Discovery:** View product details, search by keywords, and filter by genre, price range, and availability.
+- **Secure Authentication:** Full sign-up, log-in, and log-out flows with encrypted credentials and secure session handling.
+- **Cart & Order Management:** Add products to a persistent user cart, adjust quantities, and securely checkout.
+- **RESTful API:** A cleanly structured backend API handling all CRUD operations for user and product data.
+
+## 💻 Getting Started (Local Development)
 
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (v18+ recommended)
-- [npm](https://www.npmjs.com/)
+- A free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account and cluster
 
-### Installation
+### Installation & Setup
 
-1. Clone or download this repository.
-2. Install dependencies:
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/yourusername/spiral-sounds.git
+   cd spiral-sounds
+   ```
+
+2. **Install dependencies:**
+
    ```bash
    npm install
    ```
-3. Make sure you have a SQLite database file (`database.db`) in the root directory. (You can use the provided `CreateTable.js` to set up the database if needed.)
 
-### Running the Project
+3. **Configure Environment Variables:**
 
-Start the server with:
+   Create a `.env` file in the root directory and add your MongoDB Atlas connection string and session secret:
 
-```bash
-node server.js
+   ```env
+   MONGODB_URI=mongodb+srv://:@cluster0.yourcluster.mongodb.net/yourDatabaseName?retryWrites=true&w=majority
+   SPIRAL_SESSION_SECRET=your_super_secret_string
+   ```
+
+4. **Start the server:**
+
+   ```bash
+   node server.js
+   ```
+
+   The app will be available at [http://localhost:3000](http://localhost:3000).
+
+## 🗄️ Project Architecture
+
+```
+vinyl-v3/
+├── server.js                        # Main Express application entry point
+├── seed.js                          # Database seeding script
+├── route/                           # Express API route definitions
+│   ├── products.js
+│   ├── authRouter.js
+│   ├── CartRouter.js
+│   └── meRoute.js
+├── controller/                      # Business logic for routes
+│   ├── ProductsController.js
+│   ├── AuthController.js
+│   ├── CartController.js
+│   └── meController.js
+├── models/                          # Mongoose Schemas (Data layer)
+│   ├── userSC.js                    # User & Cart schema
+│   └── vinylSC.js                   # Product schema
+├── MiddleWare/                      # Custom middleware
+│   └── required.js
+├── data/                            # Sample data
+│   └── data.js
+└── public/                          # Static frontend assets
+    ├── index.html
+    ├── login.html
+    ├── signup.html
+    ├── cart.html
+    ├── css/
+    │   └── index.css
+    ├── js/
+    │   ├── index.js
+    │   ├── authUI.js
+    │   ├── login.js
+    │   ├── logout.js
+    │   ├── signup.js
+    │   ├── productUI.js
+    │   ├── productService.js
+    │   ├── cart.js
+    │   ├── cartService.js
+    │   └── menu.js
+    └── images/
 ```
 
-The app will be available at [http://localhost:3000](http://localhost:3000).
+## 🔌 Core API Endpoints
 
-## Project Structure
+- `GET /api/products` – Retrieve all products (supports `search` and `genreFilter` queries)
+- `GET /api/products/genres` – Retrieve available genres
+- `GET /api/products/:id` – Retrieve a specific product
+- `POST /api/auth/signup` – Register a new user
+- `POST /api/auth/login` – Authenticate user and initialize session
+- `GET /api/cart` – Retrieve active user's cart (populated via Mongoose)
+- `POST /api/cart/add` – Add an item to the user's cart
+- `DELETE /api/cart/:productId` – Remove an item from the cart
+- `GET /api/me` – Get current user profile
 
-- `server.js` – Main Express server file
-- `controller/ProductsController.js` – API logic for products and genres
-- `controller/AuthController.js` – API logic for authentication (Sign Up, Login, Logout)
-- `controller/CartController.js` – API logic for managing user cart
-- `controller/OrderController.js` – API logic for managing user orders
-- `route/products.js` – Express router for product endpoints
-- `route/auth.js` – Express router for authentication endpoints
-- `route/cart.js` – Express router for cart endpoints
-- `route/orders.js` – Express router for order endpoints
-- `public/` – Static frontend files (HTML, CSS, JS, images)
-- `db/db.js` – SQLite database connection
-- `db/models/User.js` – User model for database operations
-- `db/models/Product.js` – Product model for database operations
-- `db/models/Order.js` – Order model for database operations
+## 📸 Application Screenshots
 
-## API Endpoints
-
-- `GET /api/products` – List all products (supports `search` and `genreFilter` query params)
-- `GET /api/products/genres` – List all available genres
-- `GET /api/products/:id` – Retrieve a specific product by ID
-- `POST /api/products` – Create a new product
-- `PUT /api/products/:id` – Update a specific product by ID
-- `DELETE /api/products/:id` – Delete a specific product by ID
-
-## Screenshots
-
-### Home Page
+### Home Page & Product Discovery
 
 <img src="public/screenshot/home1.jpg" alt="Home Page" width="600" />
 
-### Search Feature
+### Search & Filter Functionality
 
 <img src="public/screenshot/search1.jpg" alt="Search Example" width="600" />
 
-### Dropdown Filter (Example 1)
+### Filter by Genre (Example 1)
 
 <img src="public/screenshot/dropdown1.jpg" alt="Dropdown Filter 1" width="600" />
 
-### Dropdown Filter (Example 2)
+### Filter by Genre (Example 2)
 
 <img src="public/screenshot/dropdown2.jpg" alt="Dropdown Filter 2" width="600" />
 
-### Sign-up
+### User Registration
 
 <img src="public/screenshot/signup.jpg" alt="Sign-Up" width="600" />
 
-### Log-in
+### User Login
 
 <img src="public/screenshot/LogIn.jpg" alt="Log-In" width="600" />
 
-### Wrong password or username
+### Authentication Validation
 
 <img src="public/screenshot/Wronglogin.jpg" alt="Wrong-Log-in" width="600" />
 
-### Adding to cart
+### Add to Cart
 
-<img src="public/screenshot/addToCart.jpg" alt="adding-to-cart" width="600" />
+<img src="public/screenshot/addToCart.jpg" alt="Adding to Cart" width="600" />
 
-### Account Cart
+### User Cart View (Part 1)
 
-<img src="public/screenshot/Cart1.jpg" alt="Cart1" width="600" />
+<img src="public/screenshot/Cart1.jpg" alt="Cart View 1" width="600" />
 
-### Account Cart 2
+### User Cart View (Part 2)
 
-<img src="public/screenshot/cart2.jpg" alt="Cart2" width="600" />
+<img src="public/screenshot/cart2.jpg" alt="Cart View 2" width="600" />
+
+## 📚 Learning Outcomes
+
+This project demonstrates:
+
+- Full-stack JavaScript development with Express.js
+- MongoDB and Mongoose ODM implementation
+- RESTful API design and best practices
+- Session management and user authentication
+- Cloud database integration with MongoDB Atlas
+- Frontend-backend integration with vanilla JavaScript
+- Responsive web design principles
+
+## 🤝 Contributing
+
+This project is for learning and demonstration purposes. Feel free to fork, explore, and modify the code to enhance your understanding of full-stack web development!
+
+## 📝 License
+
+Open source - feel free to use this as a learning resource.
 
 ---
-
-**Note:**  
-This project is for learning and demonstration purposes. Feel free to explore and modify the code!
