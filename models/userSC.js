@@ -24,12 +24,10 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-UserSchema.virtual(
-  "CartCount".get(function () {
-    if (!this.cart) return 0;
-    return this.cart.reduce((total, item) => total + item.quantity, 0);
-  }),
-);
+UserSchema.virtual("CartCount").get(function () {
+  if (!this.cart) return 0;
+  return this.cart.reduce((total, item) => total + item.quantity, 0);
+});
 
 const User = mongoose.model("User", UserSchema);
 export default User;

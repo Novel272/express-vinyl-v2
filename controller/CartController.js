@@ -3,7 +3,7 @@ import User from "../models/userSC.js";
 import Vinyl from "../models/vinylSC.js";
 
 export async function AddToCart(req, res) {
-  let ProductId = req.body.ProductId;
+  let ProductId = req.body.productId;
 
   if (!mongoose.Types.ObjectId.isValid(ProductId)) {
     return res.status(400).json({ error: "Invalid product ID" });
@@ -23,12 +23,14 @@ export async function AddToCart(req, res) {
     await User.updateOne(
       {
         _id: userId,
+        "cart.productId": ProductId,
       },
       {
         $inc: { "cart.$.quantity": 1 },
       },
     );
-  } else {
+  }
+  if (!existingCartItem) {
     await User.updateOne(
       {
         _id: userId,
@@ -47,7 +49,7 @@ export async function AddToCart(req, res) {
 }
 
 export async function GetCartCount(req, res) {
-  const userId = req.session.user._id;
+  const userId = req.session.userId;
   if (!userId) {
     return res.status(401).json({ error: "Please log in first" });
   }
@@ -60,7 +62,18 @@ export async function GetAll(req, res) {
   const userId = req.session.userId;
   try {
     const user = await User.findById(userId).populate("cart.productId");
-    res.json({ items: user.cart });
+    const formattedItems = user.cart
+      .filter((item) => item.productId != null) // Safety check in case a vinyl was deleted from the DB
+      .map((item) => {
+        return {
+          cartItemId: item.productId._id,
+          title: item.productId.title,
+          price: item.productId.price,
+          quantity: item.quantity,
+        };
+      });
+
+    res.json({ items: formattedItems });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Server error" });
@@ -69,24 +82,21 @@ export async function GetAll(req, res) {
 
 export async function deleteItem(req, res) {
   const userId = req.session.userId;
-  const itemId = req.params.productId;
+  const itemId = req.params.itemId;
   if (!mongoose.Types.ObjectId.isValid(itemId) || !userId) {
     return res
       .status(400)
       .json({ error: "Invalid item ID or user not logged in" });
   }
   try {
-    const item = await User.findOne(
-      { _id: userId },
-      { cart: { productId: itemId } },
-    );
-    if (!item) {
-      return res.status(400).json({ error: "Item not found" });
-    }
+    const targetObjectId = new mongoose.Types.ObjectId(itemId);
     const result = await User.updateOne(
       { _id: userId },
-      { $pull: { cart: { productId: itemId } } },
+      { $pull: { cart: { productId: targetObjectId } } },
     );
+    if (result.modifiedCount === 0) {
+      return res.status(400).json({ error: "Item not found in cart" });
+    }
     res.status(204).send();
   } catch (err) {
     console.error(err);
