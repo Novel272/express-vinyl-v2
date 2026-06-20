@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import User from "../models/userSC.js";
-import Vinyl from "../models/vinylSC.js";
+import User from "../models/usersc.js";
+import Vinyl from "../models/vinylsc.js";
 
 export async function AddToCart(req, res) {
   let ProductId = req.body.productId;

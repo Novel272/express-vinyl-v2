@@ -1,6 +1,6 @@
 import validator from "validator";
 import bcrypt from "bcryptjs";
-import User from "../models/userSC.js";
+import User from "../models/usersc.js";
 import mongoose from "mongoose";
 
 export async function AuthController(req, res) {

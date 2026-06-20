@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Vinyl from "../models/vinylSC.js";
+import Vinyl from "../models/vinylsc.js";
 
 export async function getGenres(req, res) {
   try {

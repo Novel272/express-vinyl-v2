@@ -5,7 +5,7 @@ import {
   GetAll,
   deleteAll,
   deleteItem,
-} from "../controller/cartController.js";
+} from "../controller/cartcontroller.js";
 
 import { required } from "../MiddleWare/required.js";
 

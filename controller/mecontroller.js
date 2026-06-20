@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import User from "../models/userSC.js";
+import User from "../models/usersc.js";
 
 export async function getCurrentUser(req, res) {
   try {

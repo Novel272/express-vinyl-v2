@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import vinylModel from "./models/vinylSC.js";
+import vinylModel from "./models/vinylsc.js";
 import { vinyl } from "./data/data.js";
 
 dotenv.config();

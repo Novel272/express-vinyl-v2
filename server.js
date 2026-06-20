@@ -1,11 +1,11 @@
 import express from "express";
 import cors from "cors";
 import { ProductRouter } from "./route/products.js";
-import { AuthRouter } from "./route/authRouter.js";
+import { AuthRouter } from "./route/authrouter.js";
 import session from "express-session";
 import dotenv from "dotenv";
-import { CartRouter } from "./route/CartRouter.js";
-import { meRouter } from "./route/meRoute.js";
+import { CartRouter } from "./route/cartrouter.js";
+import { meRouter } from "./route/meroute.js";
 import mongoose from "mongoose";
 import MongoStore from "connect-mongo";
 
