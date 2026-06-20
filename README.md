@@ -4,7 +4,7 @@ Spiral Sounds is a responsive, full-stack web application designed for browsing,
 
 ## 🚀 Live Demo
 
-**[Insert Your Render URL Here]**
+**[https://spiral-sounds-app.onrender.com/]**
 
 > **Note:** The backend is hosted on a free Render tier. If the server has been inactive, please allow 30–50 seconds for the initial load as the instance wakes up. Subsequent requests will be extremely fast!
 
